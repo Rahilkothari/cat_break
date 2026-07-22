@@ -1,0 +1,16 @@
+# PyInstaller directories
+dist/
+build/
+*.spec
+
+# Large media files (not meant for source control)
+*.mp4
+*.avi
+*.mov
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Exe files
+*.exe
