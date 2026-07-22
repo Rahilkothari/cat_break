@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -35,17 +38,32 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         pyinstaller --noconsole --onefile --windowed --add-data "cat_frames:cat_frames" cat_break.py
+        cd dist
+        zip -r cat_break-macos.zip cat_break.app
 
-    - name: Upload Windows Artifact
-      if: runner.os == 'Windows'
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: cat_break-windows
-        path: dist/cat_break.exe
+        name: cat_break-${{ matrix.os }}
+        path: |
+          dist/cat_break.exe
+          dist/cat_break-macos.zip
 
-    - name: Upload macOS Artifact
-      if: runner.os == 'macOS'
-      uses: actions/upload-artifact@v4
-      with:
-        name: cat_break-macos
-        path: dist/cat_break.app
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: Latest Release
+          files: |
+            artifacts/cat_break.exe
+            artifacts/cat_break-macos.zip
